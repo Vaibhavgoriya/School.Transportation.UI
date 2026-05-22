@@ -1,0 +1,45 @@
+<svg width="32" height="32" viewBox="0 0 64 64"
+  xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <!-- Main globe gradient -->
+    <radialGradient id="mainGrad" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#8BF1FF"/>
+      <stop offset="45%" stop-color="#4CB8FF"/>
+      <stop offset="75%" stop-color="#3A7DFF"/>
+      <stop offset="100%" stop-color="#5B3DF5"/>
+    </radialGradient>
+
+    <!-- Inner highlight -->
+    <radialGradient id="innerGlow" cx="30%" cy="25%" r="50%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.9)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+    </radialGradient>
+
+    <!-- Strong shadow -->
+    <filter id="deepShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="3" stdDeviation="3"
+        flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Base globe -->
+  <circle cx="32" cy="32" r="22"
+    fill="url(#mainGrad)"
+    filter="url(#deepShadow)" />
+
+  <!-- Meridians -->
+  <ellipse cx="32" cy="32" rx="9" ry="22"
+    fill="none" stroke="#EAF6FF" stroke-width="2"/>
+
+  <ellipse cx="32" cy="32" rx="17" ry="22"
+    fill="none" stroke="#EAF6FF" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- Equator -->
+  <line x1="10" y1="32" x2="54" y2="32"
+    stroke="#EAF6FF" stroke-width="2"/>
+
+  <!-- Inner shine -->
+  <ellipse cx="26" cy="22" rx="11" ry="7"
+    fill="url(#innerGlow)" opacity="0.7"/>
+</svg>

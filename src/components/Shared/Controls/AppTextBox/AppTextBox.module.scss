@@ -1,0 +1,102 @@
+.root {
+  width: 100%;
+  margin-top: 5px !important;
+  margin-bottom: 10px;
+}
+
+.labelRow{
+  font-weight: 600;
+  color: var(--color-text-primary);
+
+  .mandatory{
+    color: var(--color-error);
+    margin-left: 2px;
+  }
+}
+
+/* wrapper */
+.fieldWrap {
+  position: relative;
+
+  :global {
+    /* remove all group borders */
+    .ms-TextField-fieldGroup {
+      border: none !important;
+      background: transparent !important;
+    }
+
+    /* ✅ underline on INPUT itself */
+    input,
+    textarea {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid rgba(var(--color-secondary-rgb), 0.25);
+      background: transparent !important;
+
+      padding: 10px 2px 8px;
+      font-family: var(--font-primary);
+      font-size: 0.95rem;
+
+      transition: border-color 0.25s ease;
+    }
+
+    input:hover,
+    textarea:hover {
+      border-bottom-color: rgba(var(--color-secondary-rgb), 0.45);
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-bottom-color: transparent; /* replaced by animated line */
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;      
+      background-color: transparent !important; /* force transparent */
+    }
+  }
+
+  /* error on input itself */
+  .errorInput {
+    :global {
+      input,
+      textarea {
+        border-bottom-color: var(--color-error) !important;
+      }
+    }
+  }
+}
+
+/* ---------- animated focus line (center → sides) ---------- */
+.underline {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  height: 2px;
+  width: 0;
+  background: var(--color-primary);
+  transform: translateX(-50%);
+  transition: width 0.35s ease;
+}
+
+.focused .underline {
+  width: 100%;
+}
+
+/* ---------- error ---------- */
+.errorLine {
+  background: var(--color-error);
+}
+
+.errorText {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--color-error);
+  font-family: var(--font-error);
+  text-align: left;
+  font-weight: 600;
+}

@@ -1,0 +1,72 @@
+.layoutContainer {
+  background-color: var(--color-bg-page);
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+
+  .topNavContainer {
+    height: 52px;
+  }
+
+  .bodySection {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 52px);
+
+    .bodyContainer {
+      background-color: var(--color-bg-card);
+      border-radius: var(--radius-sm);
+    }
+  }
+
+  .leftNavWrapper {
+    transition: transform var(--transition-medium);
+  }
+
+  /* Desktop */
+  @media (min-width: 769px) {
+    .leftNavWrapper {
+      transform: translateX(0);
+    }
+
+    .bodySection {
+      .bodyContainer {
+        width: calc(100% - 200px);
+      }
+
+      .fullBodyContainer {
+        width: 100%;
+      }
+    }
+  }
+
+  /* Mobile & Tablet */
+  @media (max-width: 768px) {
+    .bodySection {
+      .bodyContainer, .fullBodyContainer {
+        width: 100%;
+      }
+    }
+
+    .leftNavWrapper {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      height: calc(100vh - 52px);
+      z-index: 200;
+      transform: translateX(-110%);
+    }
+
+    .leftNavWrapper.open {
+      transform: translateX(0);
+    }
+
+    .mobileOverlay {
+      position: fixed;
+      inset: 0;
+      background: var(--color-bg-overlay);
+      z-index: 150;
+    }
+  }
+}

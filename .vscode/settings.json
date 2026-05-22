@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/715be7a3-9b01-4555-af5b-ce2d7e1c7e1b/resourceGroups/AGA-Dev/providers/Microsoft.Web/sites/AGA-Dev-Security-Incident-Manager-UI",
+    "appService.deploySubpath": "dist"
+}

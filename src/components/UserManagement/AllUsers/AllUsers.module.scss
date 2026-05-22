@@ -1,0 +1,20 @@
+.allUsersContainer {
+  padding: 1rem;
+  background-color: var(--color-bg-page);
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-family: var(--font-secondary);
+  color: var(--color-text-primary);
+}
+
+.gridBtn {
+  width: 10% !important;
+  min-width: unset;
+}

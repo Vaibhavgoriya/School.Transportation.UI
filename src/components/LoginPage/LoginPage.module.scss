@@ -1,0 +1,199 @@
+/* Global reset and base styling */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-primary);
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+/* Wrapper splits screen into two full-width columns */
+.loginPageWrapper {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Left column: full-height background image */
+/* Background image is set inline in TSX. */
+.leftSection {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInLeft 1s ease-out 0.3s forwards;
+
+  background: url("/assets/images/loginpage-cover.jpg") no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/* Left overlay applied via pseudo-element */
+.leftSection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg-overlay);
+  z-index: 0;
+}
+
+/* Content in left section stays above overlay */
+.leftContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: var(--color-text-inverse);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-secondary);
+
+  h1 {
+    margin-bottom: 10px;
+    font-size: 2rem;
+    color: var(--color-text-inverse);
+  }
+
+  p {
+    font-size: 1rem;
+    color: var(--color-text-inverse);
+  }
+}
+
+/* Right column */
+.rightSection {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-card) 0%,
+    var(--color-bg-page) 100%
+  );
+
+  border-left: 6px solid var(--color-primary);
+
+  box-shadow:
+    inset 0 0 20px var(--shadow-soft),
+    var(--shadow-medium);
+
+  animation: fadeInRight 1s ease-out 0.3s forwards;
+  padding: 20px;
+}
+
+/* Card container for the login form */
+.loginFormContainer {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+
+  background-color: var(--color-bg-card);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-medium);
+
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* Glow effect */
+.loginFormContainer::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-accent)
+  );
+
+  opacity: 0.25;
+  filter: blur(18px);
+  z-index: -1;
+  border-radius: inherit;
+}
+
+/* Loader overlay */
+.loaderOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg-card);
+  opacity: 0.85;
+  border-radius: inherit;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Field spacing */
+.fieldContainer {
+  margin-top: 20px;
+}
+
+/* Forgot Password */
+.resetUserContainer {
+  text-align: right;
+  margin-top: 20px;
+}
+
+/* Button row */
+.buttonContainer {
+  margin-top: 10px;
+  width: 100%;
+  justify-content: center;
+
+  button {
+    margin: 0 5px;
+  }
+}
+
+/* Animations */
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .loginPageWrapper {
+    flex-direction: column;
+  }
+
+  .leftSection,
+  .rightSection {
+    flex: none;
+    min-height: 50vh;
+  }
+
+  .loginFormContainer {
+    max-width: 90%;
+    margin: 20px auto;
+  }
+}

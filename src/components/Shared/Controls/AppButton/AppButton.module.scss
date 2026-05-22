@@ -1,0 +1,126 @@
+.button {
+  border-radius: var(--radius-md) !important;
+  font-family: var(--font-primary) !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1.25rem !important;
+  height: auto !important;
+  transition: all var(--transition-fast) !important;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid transparent !important; // ✅ default reset
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    cursor: not-allowed !important;
+    background-color: var(--color-bg-card-soft) !important;
+    color: var(--color-text-disabled) !important;
+    box-shadow: none !important;
+    border-color: var(--color-border) !important; // ✅ disabled border
+  }
+}
+
+.fullWidth {
+  width: 100% !important;
+}
+
+/* ===== Variants ===== */
+
+.primary {
+  background-color: var(--color-primary) !important;
+  color: var(--color-bg-card) !important;
+  border-color: rgba(var(--color-primary-rgb), 0.9) !important;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary-hover) !important;
+    border-color: var(--color-primary-hover) !important;
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--color-primary-soft) !important;
+  }
+}
+
+.secondary {
+  background-color: var(--color-secondary) !important;
+  color: var(--color-bg-card) !important;
+  border-color: rgba(var(--color-secondary-rgb), 0.9) !important;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(var(--color-secondary-rgb), 0.85) !important;
+  }
+}
+
+.accent {
+  background-color: var(--color-accent) !important;
+  color: var(--color-bg-card) !important;
+  border-color: rgba(var(--color-accent-rgb), 0.9) !important;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(var(--color-accent-rgb), 0.85) !important;
+  }
+}
+
+.outline {
+  background: transparent !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-secondary-soft) !important;
+    border-color: rgba(var(--color-secondary-rgb), 0.3) !important;
+  }
+}
+
+.ghost {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-bg-overlay-soft) !important;
+  }
+}
+
+.success {
+  background-color: var(--color-success) !important;
+  color: var(--color-bg-card) !important;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(var(--color-success-rgb), 0.85) !important;
+  }
+}
+
+.danger {
+  background-color: var(--color-error) !important;
+  color: var(--color-bg-card) !important;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(var(--color-error-rgb), 0.85) !important;
+  }
+}
+
+.link {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--color-accent) !important; // use accent color for links
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  height: auto !important;
+
+  &:hover:not(:disabled) {
+    text-decoration: underline !important;
+    color: var(--color-primary-hover) !important; // subtle hover effect
+  }
+
+  &:active:not(:disabled) {
+    color: var(--color-primary) !important;
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    color: var(--color-text-disabled) !important;
+    cursor: not-allowed !important;
+  }
+}

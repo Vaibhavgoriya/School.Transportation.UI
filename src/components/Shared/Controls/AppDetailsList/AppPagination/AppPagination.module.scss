@@ -1,0 +1,185 @@
+.paginationContainer {
+  padding: 10px 16px;
+  border-top: 1px solid rgba(var(--color-primary-rgb), 0.22);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--color-bg-card-rgb), 0.96) 0%,
+    rgba(var(--color-primary-rgb), 0.08) 100%
+  );
+  backdrop-filter: blur(8px);
+  font-family: var(--font-primary);
+  font-size: 13px;
+}
+
+.paginationLeft {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+}
+
+.pageNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  color: var(--color-secondary);
+  background: rgba(var(--color-primary-rgb), 0.18);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.35);
+  box-shadow: 0 1px 2px rgba(var(--color-dark-rgb), 0.04);
+  white-space: nowrap;
+}
+
+.paginationRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 36px;
+}
+
+.pageSizeLabel {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dropdownWrapper {
+  width: 130px;
+  min-width: 130px;
+  max-width: 130px;
+  flex: 0 0 130px;
+}
+
+/* Fluent IconButton override */
+.paginationControls :global(.ms-Button) {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.paginationControls :global(.ms-Button:hover) {
+  background: rgba(var(--color-primary-rgb), 0.16);
+  border-color: rgba(var(--color-primary-rgb), 0.3);
+}
+
+.paginationControls :global(.ms-Button:active) {
+  transform: scale(0.96);
+}
+
+.paginationControls :global(.ms-Button:focus-visible) {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.paginationControls :global(.ms-Button-icon) {
+  color: var(--color-secondary);
+  font-size: 14px;
+}
+
+.paginationControls :global(.ms-Button.is-disabled) {
+  background: transparent;
+  border-color: transparent;
+}
+
+.paginationControls :global(.ms-Button.is-disabled .ms-Button-icon) {
+  color: var(--color-text-disabled);
+}
+
+/* Dropdown styling */
+.dropdownWrapper :global(.ms-Dropdown-container) {
+  width: 100%;
+  min-width: 100%;
+}
+
+.dropdownWrapper :global(.ms-Dropdown-title) {
+  width: 100%;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: rgba(var(--color-bg-card-rgb), 0.9);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-family: var(--font-primary);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.dropdownWrapper :global(.ms-Dropdown-title:hover) {
+  border-color: rgba(var(--color-primary-rgb), 0.4);
+  background: rgba(var(--color-primary-rgb), 0.08);
+}
+
+.dropdownWrapper :global(.ms-Dropdown-title:focus),
+.dropdownWrapper :global(.is-open .ms-Dropdown-title) {
+  border-color: rgba(var(--color-primary-rgb), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2);
+}
+
+.dropdownWrapper :global(.ms-Dropdown-caretDown) {
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .paginationContainer {
+    padding: 12px;
+  }
+
+  .paginationLeft,
+  .paginationControls,
+  .paginationRight {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .paginationLeft {
+    order: 1;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .paginationControls {
+    order: 2;
+  }
+
+  .paginationRight {
+    order: 3;
+    justify-content: center;
+  }
+
+  .dropdownWrapper {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+    flex: 0 0 120px;
+  }
+
+  .pageNumber {
+    padding: 0 10px;
+    font-size: 12.5px;
+  }
+}

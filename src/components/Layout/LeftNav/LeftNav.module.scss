@@ -1,0 +1,57 @@
+/* LeftNav.module.scss */
+.leftNavContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  width: 200px;
+  height: 100%;
+  background: var(--glass-bg); // using your glass variable
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--glass-border); // use glass border
+  box-shadow: var(--shadow-soft);
+  // border-radius: var(--radius-lg);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+
+  &:hover {
+    background: var(--glass-bg-light);
+    backdrop-filter: blur(6px);
+  }
+}
+
+.navIcon {
+  font-size: 20px;
+  margin-right: 12px;
+  color: var(--color-secondary);
+  transition: color var(--transition-fast);
+}
+
+.navText {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.active {
+  background: var(--color-text-primary);
+  // border-left: 3px solid var(--color-text-inverse);
+  color: var(--color-text-inverse);
+
+  .navIcon{
+    color: var(--color-text-inverse);
+  }
+}
+
+.addButtonWrapper {
+  margin-top: auto;
+  padding-top: 12px;
+}

@@ -1,0 +1,118 @@
+.appDetailsList {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(8px);
+
+  /* Remove default Fluent outline */
+  :global(.ms-DetailsList) {
+    background: transparent;
+  }
+
+  /* HEADER */
+  :global(.ms-DetailsHeader) {
+    background: var(--color-secondary-soft);
+    border-bottom: 1px solid var(--color-border);
+    padding-top: 0px;
+  }
+
+  :global(.ms-DetailsHeader-cell) {
+    font-family: var(--font-secondary);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-text-primary);
+  }
+
+  /* ROW */
+  :global(.ms-DetailsRow) {
+    border-bottom: 1px solid var(--color-border);
+    transition: var(--transition-fast);
+  }
+
+  :global(.ms-DetailsRow:hover) {
+    background: var(--color-primary-hover-soft);
+  }
+
+  /* Alternating rows */
+  :global(.ms-DetailsRow:nth-child(even)) {
+    background: var(--color-secondary-soft);
+  }
+
+  /* Cells */
+  :global(.ms-DetailsRow-cell) {
+    font-family: var(--font-primary);
+    font-size: 14px;
+    color: var(--color-text-primary);
+  }
+
+  /* Expand icon */
+  :global(.ms-Button--icon) {
+    color: var(--color-accent);
+    transition: var(--transition-fast);
+  }
+
+  :global(.ms-Button--icon:hover) {
+    color: var(--color-primary);
+  }
+
+  /* Center cell content vertically */
+  :global(.ms-DetailsRow-fields) {
+    align-items: center;
+  }
+}
+
+/* MOBILE EXPAND SECTION */
+/* MOBILE EXPAND SECTION */
+.expandSection {
+  margin-left: 56px;
+  margin-right: 16px;
+  margin-bottom: 12px;
+
+  padding: 16px 20px;
+
+  background: var(--color-secondary-soft);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  row-gap: 8px;
+  column-gap: 16px;
+
+  font-size: 13.5px;
+  line-height: 1.5;
+
+  animation: expandFade 0.18s ease-in-out;
+
+  strong {
+    font-weight: 800;
+    color: var(--color-text-muted);
+    text-align: left;
+  }
+
+  span {
+    color: var(--color-text-primary);
+    display: inline-flex;
+    align-items: center;
+    word-break: break-word;
+    font-weight: 400;
+    text-align: left;
+  }
+}
+
+@keyframes expandFade {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+:global(.ms-DetailsRow) {
+  transform: translateZ(0);
+}

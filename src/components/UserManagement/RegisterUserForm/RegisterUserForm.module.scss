@@ -1,0 +1,45 @@
+// .registerContainer {
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   padding: 20px;
+//   background-color: var(--color-bg-page);
+//   font-family: var(--font-primary);
+//   color: var(--color-text-primary);
+
+//   .formWrapper {
+//     width: 100%;
+//     max-width: 600px;
+//     background-color: var(--color-bg-card);
+//     padding: 30px;
+//     border-radius: var(--radius-md);
+//     box-shadow: var(--shadow-soft);
+//     transition: box-shadow var(--transition-fast),
+//       transform var(--transition-fast);
+
+//     &:hover {
+//       box-shadow: var(--shadow-medium);
+//       transform: translateY(-1px);
+//     }
+
+//     .formTitle {
+//       font-size: 1.5rem;
+//       font-weight: 600;
+//       margin-bottom: 20px;
+//       text-align: center;
+//       font-family: var(--font-secondary);
+//       color: var(--color-text-primary);
+//     }
+//   }
+// }
+
+// /* Responsive */
+// @media (max-width: 600px) {
+//   .registerContainer {
+//     padding: 12px;
+//   }
+
+//   .formWrapper {
+//     padding: 16px;
+//   }
+// }

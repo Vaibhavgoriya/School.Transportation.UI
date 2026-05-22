@@ -1,0 +1,41 @@
+body {
+  background-color: var(--color-bg-page);
+  height: 100vh;
+  display: block;
+  text-align: center;
+  font-family: var(--font-primary);
+}
+
+.container {
+  width: 100%;
+  padding-top: 3rem; /* 48px */
+
+  .innerContainer {
+    padding: 1.25rem; /* 20px */
+    border-radius: var(--radius-lg);
+    background-color: var(--color-bg-card);
+    box-shadow: var(--shadow-soft);
+
+    .labelContainer {
+      margin-top: 0px;
+      .label {
+        font-family: var(--font-secondary);
+        font-size: 1.125rem; /* 18px */
+        font-weight: 600;
+        color: var(--color-primary);
+      }
+    }
+    /* Logo */
+    .logoBigimage {
+      img {
+        height: 100px;
+      }
+    }
+
+    /* Error label */
+    .labelError {
+      font-family: var(--font-error);
+      color: var(--color-error);
+    }
+  }
+}
