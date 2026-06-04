@@ -10,6 +10,16 @@
 //   }
 // }
 
+// export default class AppSettingService {
+
+//   public getAppSetting(
+//     secret: string
+//   ): Promise<string | null> {
+
+//     return Promise.resolve(null);
+//   }
+// }
+
 export default class AppSettingService {
 
   public getAppSetting(

@@ -1,42 +1,173 @@
-// LeftNav.tsx
+// // LeftNav.tsx
+// import React from "react";
+// import { Stack, StackItem } from "@fluentui/react";
+// import { Icon } from "@fluentui/react/lib/Icon";
+// import styles from "./LeftNav.module.scss";
+// import { AppButtonVariants } from "../../../Constants";
+// import AppButton from "../../Shared/Controls/AppButton/AppButton";
+
+// const menuItems = [
+//   { title: "Live Map", icon: "MapPin", isActive: true },
+//   { title: "Routes", icon: "MapLayers", isActive: false },
+//   { title: "Students", icon: "People", isActive: false },
+//   { title: "Reports", icon: "ReportDocument", isActive: false },
+//   { title: "Settings", icon: "Settings", isActive: false },
+// ];
+
+// const LeftNav: React.FC = () => {
+//   return (
+//     <Stack className={styles.leftNavContainer}>
+//       {menuItems.map((item) => (
+//         <StackItem
+//           key={item.title}
+//           className={`${styles.navItem} ${item.isActive ? styles.active : ""}`}
+//         >
+//           <Icon iconName={item.icon} className={styles.navIcon} />
+//           <span className={styles.navText}>{item.title}</span>
+//         </StackItem>
+//       ))}
+//       <StackItem className={styles.addButtonWrapper}>
+//         <AppButton
+//           variant={AppButtonVariants.Primary}
+//           text="Add New Item"
+//           // iconProps={{ iconName: "Add" }}
+//           fullWidth
+//           onClick={() => {
+//             console.log("Add new item");
+//           }}
+//         />
+//       </StackItem>
+//     </Stack>
+//   );
+// };
+
+// export default LeftNav;
+
+
 import React from "react";
 import { Stack, StackItem } from "@fluentui/react";
 import { Icon } from "@fluentui/react/lib/Icon";
+import { useSelector } from "react-redux";
+
+import { RootState } from "../../../Redux/Reducers";
+
 import styles from "./LeftNav.module.scss";
+
 import { AppButtonVariants } from "../../../Constants";
+
 import AppButton from "../../Shared/Controls/AppButton/AppButton";
 
+// ==========================================
+// MENU ITEMS
+// ==========================================
+
 const menuItems = [
-  { title: "Live Map", icon: "MapPin", isActive: true },
-  { title: "Routes", icon: "MapLayers", isActive: false },
-  { title: "Students", icon: "People", isActive: false },
-  { title: "Reports", icon: "ReportDocument", isActive: false },
-  { title: "Settings", icon: "Settings", isActive: false },
+  {
+    title: "Live Map",
+    icon: "MapPin",
+    isActive: true,
+    available: ["Admin", "Teacher", "Parent", "Student"],
+  },
+
+  {
+    title: "Routes",
+    icon: "MapLayers",
+    isActive: false,
+    available: ["Admin", "Teacher", "Parent"],
+  },
+
+  {
+    title: "Students",
+    icon: "People",
+    isActive: false,
+    available: ["Admin", "Teacher", "Parent", "Student"],
+  },
+
+  {
+    title: "Reports",
+    icon: "ReportDocument",
+    isActive: false,
+    available: ["Admin", "Teacher"],
+  },
+
+  {
+    title: "Settings",
+    icon: "Settings",
+    isActive: false,
+    available: ["Admin"],
+  },
 ];
 
 const LeftNav: React.FC = () => {
+
+  // ==========================================
+  // GET LOGGED IN USER
+  // ==========================================
+
+  const userDetail = useSelector(
+    (state: RootState) => state.store.currentUserDetails
+  );
+
+  // ==========================================
+  // USER ROLE
+  // ==========================================
+
+  const userRole = userDetail?.role || "";
+
   return (
+
     <Stack className={styles.leftNavContainer}>
-      {menuItems.map((item) => (
-        <StackItem
-          key={item.title}
-          className={`${styles.navItem} ${item.isActive ? styles.active : ""}`}
-        >
-          <Icon iconName={item.icon} className={styles.navIcon} />
-          <span className={styles.navText}>{item.title}</span>
-        </StackItem>
-      ))}
+
+      {/* ========================================== */}
+      {/* MENU ITEMS */}
+      {/* ========================================== */}
+
+      {menuItems
+
+        // ROLE CHECK
+        .filter((item) =>
+          item.available.includes(userRole)
+        )
+
+        // SHOW MENU
+        .map((item) => (
+
+          <StackItem
+            key={item.title}
+            className={`${styles.navItem} ${item.isActive ? styles.active : ""
+              }`}
+          >
+
+            <Icon
+              iconName={item.icon}
+              className={styles.navIcon}
+            />
+
+            <span className={styles.navText}>
+              {item.title}
+            </span>
+
+          </StackItem>
+
+        ))}
+
+      {/* ========================================== */}
+      {/* ADD BUTTON */}
+      {/* ========================================== */}
+
       <StackItem className={styles.addButtonWrapper}>
+
         <AppButton
           variant={AppButtonVariants.Primary}
           text="Add New Item"
-          // iconProps={{ iconName: "Add" }}
           fullWidth
           onClick={() => {
             console.log("Add new item");
           }}
         />
+
       </StackItem>
+
     </Stack>
   );
 };

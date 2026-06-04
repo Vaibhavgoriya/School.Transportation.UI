@@ -92,6 +92,44 @@
 // }
 
 
+// import ServiceConstants from "./ServiceConstants";
+
+// export default class BaseService {
+
+//   public serviceConstants: ServiceConstants;
+
+//   constructor() {
+
+//     this.serviceConstants =
+//       new ServiceConstants();
+//   }
+
+//   protected post<T>(
+//     endpoint: string,
+//     data?: any
+//   ): Promise<T> {
+
+//     return Promise.resolve(data);
+//   }
+
+//   protected get<T>(
+//     endpoint: string
+//   ): Promise<T> {
+
+//     return Promise.resolve([] as T);
+//   }
+
+//   protected handleApiResponse<T>(
+//     apiCall: Promise<T>
+//   ): Promise<T> {
+
+//     return apiCall;
+//   }
+// }
+
+
+
+
 import ServiceConstants from "./ServiceConstants";
 
 export default class BaseService {
