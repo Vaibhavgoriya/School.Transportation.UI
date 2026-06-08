@@ -363,17 +363,49 @@ const RegisterUserForm: React.FC<
         return;
       }
 
-      const newUser = {
-        id: Date.now().toString(),
-        email,
-        username,
-        password,
-        displayName,
-        firstName,
-        surname,
-        phoneNumber,
-        role,
-      };
+      navigator.geolocation.getCurrentPosition(
+  (position) => {
+
+    const newUser = {
+      id: Date.now().toString(),
+      email,
+      username,
+      password,
+      displayName,
+      firstName,
+      surname,
+      phoneNumber,
+      role,
+
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    };
+
+    users.push(newUser);
+
+    localStorage.setItem(
+      "users",
+      JSON.stringify(users)
+    );
+
+    toast.success(
+      "User Registered Successfully"
+    );
+
+    hideLoading();
+
+    props.onClose();
+  },
+
+  () => {
+
+    toast.error(
+      "Location Permission Required"
+    );
+
+    hideLoading();
+  }
+);
 
       users.push(newUser);
 

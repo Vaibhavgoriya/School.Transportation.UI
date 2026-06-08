@@ -8,6 +8,7 @@ export class RoutePaths {
   public static ResetPassword: string = "/resetPassword/:userId?";
 
   public static AllUsers: string = "/users";
+  public static LiveMap = "/live-map";
 }
 
 export class UserRoles {
