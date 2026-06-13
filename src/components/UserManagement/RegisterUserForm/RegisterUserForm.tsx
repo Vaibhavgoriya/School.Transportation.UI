@@ -253,6 +253,10 @@ const roleOptions: IDropdownOption[] = [
     key: "Teacher",
     text: "Teacher",
   },
+   {
+    key: "Driver",
+    text: "Driver",
+  },
   {
     key: "Admin",
     text: "Admin",
@@ -407,20 +411,6 @@ const RegisterUserForm: React.FC<
   }
 );
 
-      users.push(newUser);
-
-      localStorage.setItem(
-        "users",
-        JSON.stringify(users)
-      );
-
-      toast.success(
-        "User Registered Successfully"
-      );
-
-      hideLoading();
-
-      props.onClose();
 
     }, 3000); // Loader 3 seconds
   };
