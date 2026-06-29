@@ -1,0 +1,235 @@
+// LiveMap.module.scss – all static styles
+
+.controlPanel {
+  background: #f3f4f6;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.controlRow {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.statusBadge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  border: none;
+}
+.statusBadgeIdle {
+  background: #e5e7eb;
+  color: #374151;
+}
+.statusBadgePickup,
+.statusBadgeToSchool {
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 1px solid #000000;
+}
+.statusBadgeCompleted {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  padding: 10px 20px;
+  background: #000000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.primaryButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.resetButton {
+  padding: 10px 20px;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.trafficButton {
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.trafficOn {
+  background: #ef4444;
+}
+.trafficOff {
+  background: #22c55e;
+}
+
+.userInfo {
+  background: #f3f4f6;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cardContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+  background: #f9fafb;
+}
+
+.routeCard {
+  min-width: 250px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  border-left: 8px solid #000;
+  background: #f3f4f6;
+}
+.routeCardPicked {
+  opacity: 0.6;
+}
+
+.routeTitle {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.routeStudent {
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.routeDetail {
+  margin-top: 3px;
+}
+
+.trafficStatus {
+  font-size: 12px;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.trafficDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.completedBadge {
+  color: #10b981;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.mapWrapper {
+  position: relative;
+}
+.mapContainer {
+  width: 100%;
+  height: 70vh;
+  position: relative;
+}
+
+.floatingButtons {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px 8px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.styleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 40px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+.styleButtonActive {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.legend {
+  padding: 10px 20px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.legendDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+.legendBus {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+}
+.legendLine {
+  width: 40px;
+  height: 6px;
+  background: #000000;
+  border-radius: 3px;
+}
+.legendTrafficModerate {
+  width: 40px;
+  height: 6px;
+  background: #eab308;
+  border-radius: 3px;
+  background-image: repeating-linear-gradient(90deg, #eab308, #eab308 8px, transparent 8px, transparent 16px);
+}
+.legendTrafficHeavy {
+  width: 40px;
+  height: 6px;
+  background: #ef4444;
+  border-radius: 3px;
+  background-image: repeating-linear-gradient(90deg, #ef4444, #ef4444 8px, transparent 8px, transparent 16px);
+}
