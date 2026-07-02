@@ -15,6 +15,8 @@ export interface RouteInfo {
 export interface UserLocation {
   id: string;
   firstName?: string;
+  displayName?: string;
+  email?: string;
   username?: string;
   latitude?: number;
   longitude?: number;

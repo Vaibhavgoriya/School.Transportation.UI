@@ -418,6 +418,7 @@ import "azure-maps-control/dist/atlas.min.css";
 
 import { RouteInfo, UserLocation, RouteResponse, Position } from "./ILiveMapProps";
 import styles from "./LiveMap.module.scss";
+import ServiceConstants from "../../Services/ServiceConstants";
 
 /// <reference types="azure-maps-control" />
 
@@ -443,6 +444,385 @@ const trafficControl = new atlas.control.TrafficControl({
   incident: true,
   flow: true as any,
 });
+
+const serviceConstants = new ServiceConstants();
+
+const normalizeRole = (role?: string) => role?.trim().toLowerCase() || "";
+
+const normalizeKey = (value?: string) => value?.trim().toLowerCase() || "";
+
+const canonicalUserGroups: Record<string, string[]> = {
+  lal: ["lal", "lal bhai", "lalbhai"],
+  bhuro: ["bhuro", "bhuru"],
+  radhesh: ["radhesh", "rj"],
+  jenil: ["jenil"],
+  nishant: ["nishant", "nt"],
+  vg: ["vg"],
+  admin: ["admin"],
+};
+
+const getUserAliases = (user?: Partial<UserLocation> | null) =>
+  [user?.username, user?.firstName, user?.displayName, user?.email]
+    .map(normalizeKey)
+    .filter(Boolean);
+
+const getUserKey = (user?: Partial<UserLocation> | null) => {
+  const aliases = getUserAliases(user);
+  for (const [canonicalKey, canonicalAliases] of Object.entries(canonicalUserGroups)) {
+    if (aliases.some((alias) => canonicalAliases.includes(alias) || alias === canonicalKey)) {
+      return canonicalKey;
+    }
+  }
+
+  return aliases[0] || "";
+};
+
+const driverAssignments: Record<string, string[]> = {
+  lal: ["radhesh", "jenil"],
+  bhuro: ["nishant"],
+};
+
+const getAssignedStudentKeysForDriver = (driverKey: string) => driverAssignments[driverKey] || [];
+
+const getAssignedDriverKeyForStudent = (studentKey: string) => {
+  if (studentKey === "radhesh") return "lal";
+  if (studentKey === "jenil") return "lal";
+  if (studentKey === "nishant") return "bhuro";
+  return "";
+};
+
+const getUserPosition = (user?: UserLocation | null): Position | null => {
+  if (user?.longitude == null || user?.latitude == null) {
+    return null;
+  }
+
+  return [user.longitude, user.latitude];
+};
+
+const findMatchingUser = (users: UserLocation[], currentUser?: UserLocation | null) => {
+  if (!currentUser) {
+    return null;
+  }
+
+  return (
+    users.find((user) => user.id === currentUser.id) ||
+    users.find((user) => user.email?.trim().toLowerCase() === currentUser.email?.trim().toLowerCase()) ||
+    users.find((user) => getUserKey(user) === getUserKey(currentUser)) ||
+    null
+  );
+};
+
+const isVisibleUserForViewer = (viewer: UserLocation | null, user: UserLocation) => {
+  if (!viewer) {
+    return false;
+  }
+
+  const viewerRole = normalizeRole(viewer.role);
+  const userRole = normalizeRole(user.role);
+  const viewerKey = getUserKey(viewer);
+  const userKey = getUserKey(user);
+
+  if (viewerRole === "admin") {
+    return true;
+  }
+
+  if (viewerRole === "student") {
+    if (userKey === viewerKey) {
+      return true;
+    }
+
+    if (userRole === "driver") {
+      return getAssignedDriverKeyForStudent(viewerKey) === userKey;
+    }
+
+    return false;
+  }
+
+  if (viewerRole === "driver") {
+    if (userRole === "student") {
+      return getAssignedStudentKeysForDriver(viewerKey).includes(userKey);
+    }
+
+    return false;
+  }
+
+  return false;
+};
+
+const getAdminOverviewDrivers = (users: UserLocation[]) =>
+  users.filter((user) => normalizeRole(user.role) === "driver");
+
+const getAdminOverviewStudents = (users: UserLocation[]) =>
+  users.filter((user) => normalizeRole(user.role) === "student");
+
+const driverRouteColors: Record<string, string> = {
+  lal: "#fbbf24",
+  bhuro: "#2563eb",
+};
+
+const getDriverRouteColor = (driverKey: string) => driverRouteColors[driverKey] || "#7c3aed";
+
+const liveBusPositionStorageKey = (driverKey: string) =>
+  `School-Transportation-LiveBusPosition:${driverKey}`;
+
+const getLiveBusPosition = (driverKey: string): Position | null => {
+  try {
+    const stored = localStorage.getItem(liveBusPositionStorageKey(driverKey));
+    if (!stored) return null;
+
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed) || parsed.length < 2) return null;
+
+    const [lng, lat] = parsed;
+    if (typeof lng !== "number" || typeof lat !== "number") return null;
+
+    return [lng, lat];
+  } catch {
+    return null;
+  }
+};
+
+const setLiveBusPosition = (driverKey: string, position: Position) => {
+  localStorage.setItem(liveBusPositionStorageKey(driverKey), JSON.stringify(position));
+};
+
+const getAssignedStudentsForDriver = (users: UserLocation[], driverKey: string) =>
+  users.filter(
+    (user) =>
+      normalizeRole(user.role) === "student" &&
+      getAssignedStudentKeysForDriver(driverKey).includes(getUserKey(user)) &&
+      user.latitude != null &&
+      user.longitude != null
+  );
+
+const getStudentRouteViewDriver = (users: UserLocation[], studentKey: string) => {
+  const driverKey = getAssignedDriverKeyForStudent(studentKey);
+  if (!driverKey) return null;
+
+  return (
+    users.find((user) => normalizeRole(user.role) === "driver" && getUserKey(user) === driverKey) ||
+    null
+  );
+};
+
+const drawStudentRouteView = async (
+  map: atlas.Map,
+  users: UserLocation[],
+  viewer: UserLocation | null,
+  showTraffic: boolean
+) : Promise<StudentRouteSummary | null> => {
+  if (!viewer) {
+    return null;
+  }
+
+  clearRoutes(map);
+
+  const viewerKey = getUserKey(viewer);
+  const studentUser = findMatchingUser(users, viewer) || viewer;
+  const studentPosition = getUserPosition(studentUser);
+  const assignedDriver = getStudentRouteViewDriver(users, viewerKey);
+  const driverKey = getUserKey(assignedDriver);
+  const driverPosition = getLiveBusPosition(driverKey) || getUserPosition(assignedDriver) || DRIVER_LAL_POSITION;
+  const routeColor = getDriverRouteColor(driverKey);
+
+  if (!studentPosition) {
+    return null;
+  }
+
+  const positions: Position[] = [SCHOOL_POSITION, studentPosition, driverPosition];
+  let totalDistance = 0;
+  let totalTime = 0;
+
+  try {
+    const driverToStudent = await fetch(getRouteUrl(driverPosition, studentPosition, 0));
+    const driverToStudentResult = (await driverToStudent.json()) as RouteResponse;
+    const driverToStudentRoute = driverToStudentResult.routes?.[0];
+    const driverToStudentPoints = driverToStudentRoute?.legs?.[0]?.points;
+
+    if (driverToStudentPoints?.length) {
+      const coordinates: Position[] = driverToStudentPoints.map((point) => [point.longitude, point.latitude]);
+      await addRouteWithTraffic(map, coordinates, 6, showTraffic, routeColor, false);
+      if (driverToStudentRoute?.summary) {
+        totalDistance += driverToStudentRoute.summary.lengthInMeters;
+        totalTime += driverToStudentRoute.summary.travelTimeInSeconds;
+      }
+    }
+
+    const driverToSchool = await fetch(getRouteUrl(studentPosition, SCHOOL_POSITION, 0));
+    const driverToSchoolResult = (await driverToSchool.json()) as RouteResponse;
+    const driverToSchoolRoute = driverToSchoolResult.routes?.[0];
+    const driverToSchoolPoints = driverToSchoolRoute?.legs?.[0]?.points;
+
+    if (driverToSchoolPoints?.length) {
+      const coordinates: Position[] = driverToSchoolPoints.map((point) => [point.longitude, point.latitude]);
+      await addRouteWithTraffic(map, coordinates, 5, showTraffic, "#111827", false);
+      if (driverToSchoolRoute?.summary) {
+        totalDistance += driverToSchoolRoute.summary.lengthInMeters;
+        totalTime += driverToSchoolRoute.summary.travelTimeInSeconds;
+      }
+    }
+  } catch (error) {
+    console.error("Student route error:", error);
+  }
+
+  map.setCamera({
+    bounds: atlas.data.BoundingBox.fromPositions(positions),
+    padding: 60,
+  });
+
+  return {
+    driverKey,
+    driverName: assignedDriver?.firstName || assignedDriver?.username || driverKey,
+    distanceKm: (totalDistance / 1000).toFixed(2),
+    timeMin: Math.round(totalTime / 60),
+    routeColor,
+  };
+};
+
+const ensureLiveDriverMarkers = (users: UserLocation[]) => {
+  users
+    .filter((user) => normalizeRole(user.role) === "driver")
+    .forEach((driver) => {
+      const driverKey = getUserKey(driver);
+      const driverPosition = getLiveBusPosition(driverKey) || getUserPosition(driver);
+      if (driverPosition) {
+        setLiveBusPosition(driverKey, driverPosition);
+      }
+    });
+};
+
+type AdminRouteSummary = {
+  driverKey: string;
+  driverName: string;
+  assignedCount: number;
+  pickedCount: number;
+  remainingCount: number;
+  distanceKm: string;
+  timeMin: number;
+  routeColor: string;
+};
+
+type StudentRouteSummary = {
+  driverKey: string;
+  driverName: string;
+  distanceKm: string;
+  timeMin: number;
+  routeColor: string;
+};
+
+const drawAdminRoutes = async (
+  map: atlas.Map,
+  users: UserLocation[],
+  showTraffic: boolean
+): Promise<AdminRouteSummary[]> => {
+  clearRoutes(map);
+
+  const summaries: AdminRouteSummary[] = [];
+  const positions: Position[] = [SCHOOL_POSITION];
+  const drivers = getAdminOverviewDrivers(users);
+
+  for (const driver of drivers) {
+    const driverKey = getUserKey(driver);
+    const driverPosition = getLiveBusPosition(driverKey) || getUserPosition(driver);
+    const routeColor = getDriverRouteColor(driverKey);
+
+    if (!driverPosition) {
+      summaries.push({
+        driverKey,
+        driverName: driver.firstName || driver.username || driverKey,
+        assignedCount: 0,
+        pickedCount: 0,
+        remainingCount: 0,
+        distanceKm: "N/A",
+        timeMin: 0,
+        routeColor,
+      });
+      continue;
+    }
+
+    const assignedStudents = getAssignedStudentsForDriver(users, driverKey);
+    const orderedStudents: UserLocation[] = [];
+    let currentPos = driverPosition;
+    const remaining = [...assignedStudents];
+
+    while (remaining.length > 0) {
+      const nearest = getNearestStudent(currentPos, remaining);
+      if (!nearest) break;
+      orderedStudents.push(nearest);
+      const index = remaining.findIndex((student) => student.id === nearest.id);
+      if (index !== -1) remaining.splice(index, 1);
+      currentPos = [nearest.longitude!, nearest.latitude!];
+    }
+
+    const routePoints: Position[] = [driverPosition];
+    let totalDistance = 0;
+    let totalTime = 0;
+
+    const addLeg = async (start: Position, end: Position, width: number) => {
+      const response = await fetch(getRouteUrl(start, end, 0));
+      const result = (await response.json()) as RouteResponse;
+      const route = result.routes?.[0];
+      const points = route?.legs?.[0]?.points;
+      const summary = route?.summary;
+
+      if (!summary || !points?.length) {
+        return;
+      }
+
+      const coordinates: Position[] = points.map((point) => [point.longitude, point.latitude]);
+      await addRouteWithTraffic(map, coordinates, width, showTraffic, routeColor, false);
+      totalDistance += summary.lengthInMeters;
+      totalTime += summary.travelTimeInSeconds;
+    };
+
+    try {
+      if (orderedStudents.length > 0) {
+        const firstStudent = orderedStudents[0];
+        const firstPos: Position = [firstStudent.longitude!, firstStudent.latitude!];
+        await addLeg(driverPosition, firstPos, 6);
+        routePoints.push(firstPos);
+
+        for (let i = 0; i < orderedStudents.length - 1; i++) {
+          const from = orderedStudents[i];
+          const to = orderedStudents[i + 1];
+          const fromPos: Position = [from.longitude!, from.latitude!];
+          const toPos: Position = [to.longitude!, to.latitude!];
+          await addLeg(fromPos, toPos, 5);
+          routePoints.push(toPos);
+        }
+
+        const lastStudent = orderedStudents[orderedStudents.length - 1];
+        const lastPos: Position = [lastStudent.longitude!, lastStudent.latitude!];
+        await addLeg(lastPos, SCHOOL_POSITION, 5);
+        routePoints.push(SCHOOL_POSITION);
+      }
+    } catch (error) {
+      console.error(`Admin route error for ${driverKey}`, error);
+    }
+
+    summaries.push({
+      driverKey,
+      driverName: driver.firstName || driver.username || driverKey,
+      assignedCount: assignedStudents.length,
+      pickedCount: orderedStudents.length,
+      remainingCount: Math.max(assignedStudents.length - orderedStudents.length, 0),
+      distanceKm: (totalDistance / 1000).toFixed(2),
+      timeMin: Math.round(totalTime / 60),
+      routeColor,
+    });
+
+    positions.push(...routePoints);
+  }
+
+  if (positions.length > 1) {
+    map.setCamera({
+      bounds: atlas.data.BoundingBox.fromPositions(positions),
+      padding: 60,
+    });
+  }
+
+  return summaries;
+};
 
 // ----- Helper functions (unchanged) -----
 const loadUsers = (): UserLocation[] => {
@@ -484,7 +864,9 @@ const loadUsers = (): UserLocation[] => {
 
 const getCurrentUser = (): UserLocation | null => {
   try {
-    const stored = localStorage.getItem("currentUser");
+    const stored =
+      localStorage.getItem(serviceConstants.LocalStorageCacheName) ||
+      localStorage.getItem("currentUser");
     if (stored) return JSON.parse(stored);
   } catch {
     console.error("Failed to load current user");
@@ -676,9 +1058,11 @@ const LiveMap: React.FC = () => {
   const [tripStatus, setTripStatus] = useState<"idle" | "pickup" | "toSchool" | "completed">("idle");
   const [totalDistance, setTotalDistance] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
-  const [busPosition, setBusPosition] = useState<Position>(DRIVER_LAL_POSITION);
+  const [busPosition, setBusPosition] = useState<Position>(() => getUserPosition(currentUser) ?? DRIVER_LAL_POSITION);
   const [trafficEnabled, setTrafficEnabled] = useState(false);
   const [mapStyleType, setMapStyleType] = useState<string>("road");
+  const [adminRouteSummaries, setAdminRouteSummaries] = useState<AdminRouteSummary[]>([]);
+  const [studentRouteSummary, setStudentRouteSummary] = useState<StudentRouteSummary | null>(null);
 
   const driverMarkerRef = useRef<atlas.HtmlMarker | null>(null);
   const mapRef = useRef<atlas.Map | null>(null);
@@ -707,10 +1091,24 @@ const LiveMap: React.FC = () => {
   useEffect(() => {
     const users = loadUsers();
     const studentList = users.filter(
-      (u) => u.role === "Student" && u.id !== currentUser?.id && u.latitude && u.longitude
+      (u) =>
+        normalizeRole(u.role) === "student" &&
+        u.latitude != null &&
+        u.longitude != null &&
+        isVisibleUserForViewer(currentUser, u)
     );
     setStudents(studentList);
-  }, []);
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (normalizeRole(currentUser?.role) !== "admin") {
+      setAdminRouteSummaries([]);
+    }
+
+    if (normalizeRole(currentUser?.role) !== "student") {
+      setStudentRouteSummary(null);
+    }
+  }, [currentUser]);
 
   // Change map style
   const changeMapStyle = (style: string) => {
@@ -920,6 +1318,13 @@ const LiveMap: React.FC = () => {
       }
     }
     // Redraw with new traffic setting
+    if (normalizeRole(currentUser?.role) === "admin" && mapRef.current) {
+      const users = loadUsers();
+      const adminSummaries = await drawAdminRoutes(mapRef.current, users, newState);
+      setAdminRouteSummaries(adminSummaries);
+      return;
+    }
+
     if (tripStatusRef.current !== "idle" && orderedStudentsRef.current.length > 0 && mapRef.current) {
       await drawFullRoute(mapRef.current, busPosition, orderedStudentsRef.current, newState);
     }
@@ -955,10 +1360,9 @@ const LiveMap: React.FC = () => {
       Math.pow(currentBusPos[1] - targetPos[1], 2)
     );
     if (dist < 0.0005) {
-      // Reached the target of this leg
       // Mark this leg as completed
       const updatedLegs = legs.map((leg, idx) =>
-        idx === legIndex ? { ...leg, status: "picked" } : leg
+        idx === legIndex ? { ...leg, status: "picked" as const } : leg
       );
       setLegsInfo(updatedLegs);
       legsInfoRef.current = updatedLegs;
@@ -1019,23 +1423,41 @@ const LiveMap: React.FC = () => {
       addMarker(map, SCHOOL_POSITION, "🏫🎓", "LE College, Morbi", "#EF4444");
 
       const users = loadUsers();
+      ensureLiveDriverMarkers(users);
+      const activeDriver = normalizeRole(currentUser?.role) === "driver" ? findMatchingUser(users, currentUser) : null;
+      const activeDriverPosition = getUserPosition(activeDriver || currentUser) ?? DRIVER_LAL_POSITION;
+
       users.forEach((user) => {
-        if (user.latitude && user.longitude && user.id !== currentUser?.id) {
-          if (user.role === "Student") {
-            addMarker(map, [user.longitude, user.latitude], "🧑‍🎓", user.firstName || user.username, "#3B82F6");
-          } else if (user.role === "Teacher") {
-            addMarker(map, [user.longitude, user.latitude], "👩‍🏫", user.firstName, "#8B5CF6");
-          } else if (user.role === "Parent") {
-            addMarker(map, [user.longitude, user.latitude], "👨‍👩‍👧", user.firstName, "#10B981");
-          }
+        if (user.latitude == null || user.longitude == null || !isVisibleUserForViewer(currentUser, user)) {
+          return;
+        }
+
+        const position: Position = [user.longitude, user.latitude];
+        const role = normalizeRole(user.role);
+
+        if (role === "student") {
+          addMarker(map, position, user.id === currentUser?.id ? "🧑‍🎓" : "🧑‍🎓", user.firstName || user.username, user.id === currentUser?.id ? "#2563EB" : "#3B82F6");
+        } else if (role === "driver") {
+          addMarker(map, position, "🚌", user.firstName || user.username || "Driver", "#F59E0B");
+        } else if (role === "teacher") {
+          addMarker(map, position, "👩‍🏫", user.firstName, "#8B5CF6");
+        } else if (role === "parent") {
+          addMarker(map, position, "👨‍👩‍👧", user.firstName, "#10B981");
         }
       });
 
-      updateDriverMarker(driverMarkerRef, map, DRIVER_LAL_POSITION, currentUser?.firstName || "Lal");
+      if (normalizeRole(currentUser?.role) === "driver") {
+        updateDriverMarker(
+          driverMarkerRef,
+          map,
+          activeDriverPosition,
+          activeDriver?.firstName || activeDriver?.username || currentUser?.firstName || "Lal"
+        );
+      }
 
       const positions: Position[] = [SCHOOL_POSITION];
       users.forEach((user) => {
-        if (user.latitude && user.longitude) {
+        if (user.latitude != null && user.longitude != null && isVisibleUserForViewer(currentUser, user)) {
           positions.push([user.longitude, user.latitude]);
         }
       });
@@ -1044,6 +1466,11 @@ const LiveMap: React.FC = () => {
           bounds: atlas.data.BoundingBox.fromPositions(positions),
           padding: 50,
         });
+      }
+
+      if (normalizeRole(currentUser?.role) === "admin") {
+        const adminSummaries = await drawAdminRoutes(map, users, trafficEnabled);
+        setAdminRouteSummaries(adminSummaries);
       }
     });
 
@@ -1058,7 +1485,7 @@ const LiveMap: React.FC = () => {
 
   // Live tracking for driver (real GPS)
   useEffect(() => {
-    if (currentUser?.role !== "Driver") return;
+    if (normalizeRole(currentUser?.role) !== "driver") return;
     if (!navigator.geolocation) {
       alert("Geolocation not supported. Please use a device with GPS.");
       return;
@@ -1068,8 +1495,9 @@ const LiveMap: React.FC = () => {
       async (position) => {
         const newPos: Position = [position.coords.longitude, position.coords.latitude];
         setBusPosition(newPos);
+        setLiveBusPosition(getUserKey(currentUser), newPos);
         if (mapRef.current) {
-          updateDriverMarker(driverMarkerRef, mapRef.current, newPos, currentUser?.firstName || "Lal");
+          updateDriverMarker(driverMarkerRef, mapRef.current, newPos, currentUser?.firstName || currentUser?.username || "Lal");
           await checkAndAdvance(newPos);
         }
       },
@@ -1112,10 +1540,111 @@ const LiveMap: React.FC = () => {
       ? "⚫ Going to LE College"
       : "✅ Completed";
 
+  const overviewUsers = loadUsers();
+  const adminDrivers = getAdminOverviewDrivers(overviewUsers);
+  const adminStudents = getAdminOverviewStudents(overviewUsers);
+
   return (
     <div>
+      {normalizeRole(currentUser?.role) === "student" && (
+        <div className={styles.dashboardShell} style={{ marginBottom: 16 }}>
+          <div className={styles.dashboardHeader}>
+            <div>
+              <div className={styles.dashboardTitle}>Student Route</div>
+              <div className={styles.dashboardSubtitle}>
+                Bus to student pickup to school routing with live bus tracking
+              </div>
+            </div>
+            <div
+              className={styles.dashboardBadge}
+              style={{ background: studentRouteSummary?.routeColor || "#2563eb" }}
+            >
+              🚌 {studentRouteSummary?.driverName || "Assigned Bus"}
+            </div>
+          </div>
+          <div className={styles.metricGrid}>
+            <div className={styles.metricChip}>Route: Bus → Student → School</div>
+            <div className={styles.metricChip}>
+              Distance: {studentRouteSummary ? `${studentRouteSummary.distanceKm} km` : "N/A"}
+            </div>
+            <div className={styles.metricChip}>
+              Time: {studentRouteSummary ? `${studentRouteSummary.timeMin} min` : "N/A"}
+            </div>
+            <div className={styles.metricChip}>Pickup flow: Active</div>
+          </div>
+        </div>
+      )}
+
+      {normalizeRole(currentUser?.role) === "admin" && (
+        <div className={styles.dashboardShell} style={{ marginBottom: 16 }}>
+          <div className={styles.dashboardHeader}>
+            <div>
+              <div className={styles.dashboardTitle}>Admin Route Overview</div>
+              <div className={styles.dashboardSubtitle}>
+                Live route summary for all buses, students, and school reach time
+              </div>
+            </div>
+            <div className={styles.metricGrid}>
+              <div className={styles.metricChip}>Students: {adminStudents.length}</div>
+              <div className={styles.metricChip}>Drivers: {adminDrivers.length}</div>
+              <div className={styles.metricChip}>School: LE College</div>
+            </div>
+          </div>
+          <div className={styles.dashboardCardGrid}>
+            {adminDrivers.map((driver) => {
+              const driverKey = getUserKey(driver);
+              const assignedStudents = overviewUsers.filter(
+                (user) =>
+                  normalizeRole(user.role) === "student" &&
+                  getAssignedStudentKeysForDriver(driverKey).includes(getUserKey(user))
+              );
+              const driverPosition = getUserPosition(driver);
+              const summary = adminRouteSummaries.find((item) => item.driverKey === driverKey);
+
+              return (
+                <div key={driver.id} className={styles.dashboardCard}>
+                  <div className={styles.dashboardCardTop}>
+                    <div className={styles.driverTitleWrap}>
+                      <span
+                        className={styles.routeColorDot}
+                        style={{ background: summary?.routeColor || getDriverRouteColor(driverKey) }}
+                      />
+                      <div>
+                        <div className={styles.driverName}>{driver.firstName || driver.username || "Driver"}</div>
+                        <div className={styles.driverMeta}>Bus route assigned</div>
+                      </div>
+                    </div>
+                    <div className={styles.dashboardBadge} style={{ background: summary?.routeColor || getDriverRouteColor(driverKey) }}>
+                      {summary ? `${summary.timeMin} min` : "Routing"}
+                    </div>
+                  </div>
+
+                  <div className={styles.metricGrid}>
+                    <div className={styles.metricChip}>
+                      Assigned: {assignedStudents.map((student) => student.firstName || student.username).join(", ") || "None"}
+                    </div>
+                    <div className={styles.metricChip}>
+                      Location: {driverPosition ? `${driverPosition[1].toFixed(5)}, ${driverPosition[0].toFixed(5)}` : "N/A"}
+                    </div>
+                    <div className={styles.metricChip}>
+                      School: {summary ? `${summary.distanceKm} km` : "N/A"}
+                    </div>
+                    <div className={styles.metricChip}>
+                      Picked: {summary ? summary.pickedCount : 0}/{summary ? summary.assignedCount : assignedStudents.length}
+                    </div>
+                    <div className={styles.metricChip}>
+                      Remaining: {summary ? summary.remainingCount : assignedStudents.length}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Control Panel for Driver */}
-      {currentUser?.role === "Driver" && (
+      {normalizeRole(currentUser?.role) === "driver" && (
         <div className={styles.controlPanel}>
           <div className={styles.controlRow}>
             <span style={{ fontWeight: "bold" }}>📍 Trip Status:</span>
@@ -1150,7 +1679,7 @@ const LiveMap: React.FC = () => {
         </div>
       )}
 
-      {currentUser?.role !== "Driver" && (
+      {normalizeRole(currentUser?.role) !== "driver" && (
         <div className={styles.userInfo}>
           <span>
             👋 Hello, {currentUser.firstName} ({currentUser.role})
@@ -1159,47 +1688,49 @@ const LiveMap: React.FC = () => {
       )}
 
       {/* Route Info Cards for each leg */}
-      <div className={styles.cardContainer}>
-        {legsInfo.map((leg, idx) => {
-          const isCompleted = leg.status === "picked";
-          const isCurrent = idx === currentLegIndex && tripStatus !== "completed";
-          return (
-            <div
-              key={`leg-${idx}`}
-              className={`${styles.routeCard} ${isCompleted ? styles.routeCardPicked : ""}`}
-              style={{
-                borderLeftColor: isCompleted ? "#10b981" : leg.color,
-                background: isCurrent ? "#e0f2fe" : leg.backgroundColor,
-              }}
-            >
-              <div className={styles.routeTitle} style={{ color: isCompleted ? "#10b981" : leg.color }}>
-                {idx === 0 && "🚌 Bus → Student"}
-                {idx > 0 && idx < orderedStudents.length && "👨‍🎓 Student → Student"}
-                {idx === orderedStudents.length && "🏫 Student → LE College"}
-                {isCompleted && " ✅ Completed"}
-              </div>
-              <div className={styles.routeStudent}>
-                {idx < orderedStudents.length
-                  ? `Student: ${leg.student}`
-                  : "Destination: LE College"}
-              </div>
-              <div className={styles.routeDetail}>
-                Distance: {leg.distance} KM | Time: {leg.time} Min
-              </div>
+      {normalizeRole(currentUser?.role) === "driver" && (
+        <div className={styles.cardContainer}>
+          {legsInfo.map((leg, idx) => {
+            const isCompleted = leg.status === "picked";
+            const isCurrent = idx === currentLegIndex && tripStatus !== "completed";
+            return (
               <div
-                className={styles.trafficStatus}
-                style={{ color: getTrafficColor(leg.trafficStatus, trafficEnabled) }}
+                key={`leg-${idx}`}
+                className={`${styles.routeCard} ${isCompleted ? styles.routeCardPicked : ""}`}
+                style={{
+                  borderLeftColor: isCompleted ? "#10b981" : leg.color,
+                  background: isCurrent ? "#e0f2fe" : leg.backgroundColor,
+                }}
               >
-                <span
-                  className={styles.trafficDot}
-                  style={{ background: getTrafficColor(leg.trafficStatus, trafficEnabled) }}
-                ></span>
-                {getTrafficText(leg.trafficStatus, trafficEnabled)}
+                <div className={styles.routeTitle} style={{ color: isCompleted ? "#10b981" : leg.color }}>
+                  {idx === 0 && "🚌 Bus → Student"}
+                  {idx > 0 && idx < orderedStudents.length && "👨‍🎓 Student → Student"}
+                  {idx === orderedStudents.length && "🏫 Student → LE College"}
+                  {isCompleted && " ✅ Completed"}
+                </div>
+                <div className={styles.routeStudent}>
+                  {idx < orderedStudents.length
+                    ? `Student: ${leg.student}`
+                    : "Destination: LE College"}
+                </div>
+                <div className={styles.routeDetail}>
+                  Distance: {leg.distance} KM | Time: {leg.time} Min
+                </div>
+                <div
+                  className={styles.trafficStatus}
+                  style={{ color: getTrafficColor(leg.trafficStatus, trafficEnabled) }}
+                >
+                  <span
+                    className={styles.trafficDot}
+                    style={{ background: getTrafficColor(leg.trafficStatus, trafficEnabled) }}
+                  ></span>
+                  {getTrafficText(leg.trafficStatus, trafficEnabled)}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Map Container */}
       <div className={styles.mapWrapper}>
